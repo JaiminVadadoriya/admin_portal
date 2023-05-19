@@ -52,70 +52,37 @@ Future<String> conformInstitute() async {
             String instiname = instituteData[z].name;
             String branchname = instituteData[z].branches[x].branchName;
             String stuname = students[i].name;
-            //  int currentSeats = instituteData[z].branches[x].filledSeats;
-            // int totalSeats = instituteData[z].branches[x].totalSeats;
-            // print(currentSeats);
-            // print(totalSeats);
-            // print(currentMerit);
             int currentSeats = instituteData[z].branches[x].filledSeats;
             int totalSeats = instituteData[z].branches[x].totalSeats;
             print(currentSeats);
             print(totalSeats);
             print(currentMerit);
 
-            if ( //currentMerit <= totalSeats ||
-                // (currentMerit >= totalSeats &&
-                currentSeats < totalSeats //)
-                ) {
+            if (currentSeats < totalSeats) {
               // Update the favorite institute branch of the student
-              String? favInstitute =
-                  currentFav == instituteData[z].branches[x].bID
-                      ? currentFav
-                      : null;
+              // String favInstitute =
+              //     currentFav == instituteData[z].branches[x].bID
+              //         ? currentFav
+              //         : "";
               await studentRef
                   .doc(students[i].uid)
-                  .update({'confbranch': favInstitute});
-              // await studentRef.doc(userId).update({'isSeatConf': true});
-
-              // // Increment the seats in the branch document within the institute collection
-              // instituteData[z].branches[x].filledSeats++;
-              // await db
-              //     .collection("institutes")
-              //     .doc(instituteData[z].uid)
-              //     .collection("branch")
-              //     .doc(instituteData[z].branches[x].bID)
-              //     .update({
-              //   'filledSeats': instituteData[z].branches[x].filledSeats
-              // });
-
-              // if(instituteData[z].branches[x].minMarks == 0 || instituteData[z].branches[x].minMarks < students.meritNo){
-              //   instituteData[z].branches[x].minMarks = students.meritNo;
-
-              //   await db
-              // .collection("institutes")
-              // .doc(instituteData[z].uid)
-              // .collection("branch")
-              // .doc(instituteData[z].branches[x].bID)
-              // .update({'filledSeats': instituteData[z].branches[x].minMarks});
-              // }
-              // else if( ){
-              //   instituteData[z].branches[x].minMarks = students.meritNo;
-              // }
+                  .update({'confbranch': instituteData[z].branches[x].bID});
+              await studentRef
+                  .doc(students[i].uid)
+                  .update({'confinstitute': instituteData[z].uid});
 
               print('You have successfully confirmed your institute branch.');
               confirmed = true;
               break;
-            } else {
-              print(
-                  'Your merit number is not within the available seats for this institute branch.');
-              confirmed = false;
             }
+            //  else {
+            //   print(
+            //       'Your merit number is not within the available seats for this institute branch.');
+            //   confirmed = false;
+            // }
 
-            if ( //currentMerit <= totalSeats ||
-                // (currentMerit >= totalSeats &&
-                instituteData[z].branches[x].filledSeats <
-                    instituteData[z].branches[x].totalSeats //)
-                ) {
+            if (instituteData[z].branches[x].filledSeats <
+                instituteData[z].branches[x].totalSeats) {
               // Update the favorite institute branch of the student
 
               instituteData[z].branches[x].filledSeats++;
@@ -125,12 +92,6 @@ Future<String> conformInstitute() async {
                   instituteData[z].branches[x].minMarks < students[i].meritNo) {
                 instituteData[z].branches[x].minMarks = students[i].meritNo;
                 print("$stuname get this $instiname in $branchname");
-                //   await db
-                // .collection("institutes")
-                // .doc(instituteData[z].uid)
-                // .collection("branch")
-                // .doc(instituteData[z].branches[x].bID)
-                // .update({'filledSeats': instituteData[z].branches[x].filledSeats});
 
                 await db
                     .collection("institutes")
@@ -140,9 +101,6 @@ Future<String> conformInstitute() async {
                     .update(
                         {'minMarks': instituteData[z].branches[x].minMarks});
               }
-              // else if( ){
-              //   instituteData[z].branches[x].minMarks = students.meritNo;
-              // }
 
               print('You have successfully confirmed your institute branch.');
               confirmed = true;
@@ -152,6 +110,15 @@ Future<String> conformInstitute() async {
                   'Your merit number is not within the available seats for this institute branch. Please wait for next round.');
               confirmed = false;
             }
+          }
+          if (instituteData[z].branches[x].minMarks == 0) {
+            instituteData[z].branches[x].minMarks = students.length;
+            await db
+                .collection("institutes")
+                .doc(instituteData[z].uid)
+                .collection("branch")
+                .doc(instituteData[z].branches[x].bID)
+                .update({'minMarks': students.length});
           }
           if (confirmed) {
             break;

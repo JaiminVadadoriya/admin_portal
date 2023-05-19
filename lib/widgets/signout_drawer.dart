@@ -49,7 +49,7 @@ class SignoutDrawer extends StatelessWidget {
                   )
                 : Card(
                     child: ListTile(
-                    title: Text("Rigistretion is not end."),
+                    title: Text("Registration is running."),
                   )),
 
             rounds.mockroundEnds(Timestamp.now())
