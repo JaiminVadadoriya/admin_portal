@@ -6,136 +6,144 @@ import 'package:flutter/src/widgets/framework.dart';
 import '../models/institute.dart';
 import '../models/student.dart';
 
-Future<String> conformInstitute() async {
+Future conformInstitute() async {
   final db = FirebaseFirestore.instance;
-
-  // Fetch all the students from Firestore
-  final studentRef = db.collection('students');
-  final studentDocs = await studentRef.get();
-  final students = //Student.fromMap(userData);
-      studentDocs.docs.map((doc) => Student.fromMap(doc.data())).toList();
 
   List<Institute> instituteData = [];
 
-  final institutesSnapshot =
-      await FirebaseFirestore.instance.collection('institutes').get();
-  for (final instituteDocument in institutesSnapshot.docs) {
-    final branchesSnapshot = await FirebaseFirestore.instance
-        .collection('institutes')
-        .doc(instituteDocument.id)
-        .collection('branch')
-        .get();
+  FirebaseFirestore.instance.collection('institutes').get().then(
+    (instValue) {
+      for (final instituteDocument in instValue.docs) {
+        FirebaseFirestore.instance
+            .collection('institutes')
+            .doc(instituteDocument.id)
+            .collection('branch')
+            .get()
+            .then(
+          (branchValue) {
+            List<Branch> branches = branchValue.docs
+                .map((element) =>
+                    Branch.fromFirestore(element, SnapshotOptions()))
+                .toList();
 
-    List<Branch> branches = branchesSnapshot.docs
-        .map((element) => Branch.fromFirestore(element, SnapshotOptions()))
-        .toList();
+            Institute temp =
+                Institute.fromFirestore(instituteDocument, SnapshotOptions());
+            temp.branches = branches;
+            instituteData.add(temp);
+          },
+        );
+      }
 
-    Institute temp =
-        Institute.fromFirestore(instituteDocument, SnapshotOptions());
-    temp.branches = branches;
-    instituteData.add(temp);
-  }
+      // Fetch all the students from Firestore
+      final studentRef = db.collection("students");
+      studentRef.orderBy("meritNo").get().then(
+        (stuValue) {
+          final students = //Student.fromMap(userData);
+              stuValue.docs.map((doc) => Student.fromMap(doc.data())).toList();
 
-  bool confirmed = false;
-  String instiname = "";
-  String branchname = "";
+          // String instiname = "";
+          // String branchname = "";
 
-  for (int i = 0; i < students.length; i++) {
-    int currentMerit = students[i].meritNo;
+          print("hello - done${students.length}");
+          for (int i = 0; i < students.length; i++) {
+            bool confirmed = false;
 
-    for (int j = 0; j < students[i].fav.length; j++) {
-      String currentFav = students[i].fav[j];
+            int currentMerit = students[i].meritNo;
 
-      for (int z = 0; z < instituteData.length; z++) {
-        for (int x = 0; x < instituteData[z].branches.length; x++) {
-          if (currentFav == instituteData[z].branches[x].bID) {
-            String instiname = instituteData[z].name;
-            String branchname = instituteData[z].branches[x].branchName;
-            String stuname = students[i].name;
-            int currentSeats = instituteData[z].branches[x].filledSeats;
-            int totalSeats = instituteData[z].branches[x].totalSeats;
-            print(currentSeats);
-            print(totalSeats);
-            print(currentMerit);
+            for (int j = 0; j < students[i].fav.length; j++) {
+              String currentFav = students[i].fav[j].substring(28);
+              for (int z = 0; z < instituteData.length; z++) {
+                if (students[i].fav[j].substring(0, 20) ==
+                    instituteData[z].uid) {
+                  for (int x = 0; x < instituteData[z].branches.length; x++) {
+                    if (currentFav == instituteData[z].branches[x].bID) {
+                      String instiname = instituteData[z].name;
+                      String branchname =
+                          instituteData[z].branches[x].branchName;
+                      String stuname = students[i].name;
+                      // int currentSeats =
+                      //     instituteData[z].branches[x].filledSeats;
+                      // int totalSeats = ;
+                      // print(currentSeats);
+                      // print(totalSeats);
+                      print(currentMerit);
 
-            if (currentSeats < totalSeats) {
-              // Update the favorite institute branch of the student
-              // String favInstitute =
-              //     currentFav == instituteData[z].branches[x].bID
-              //         ? currentFav
-              //         : "";
-              await studentRef
-                  .doc(students[i].uid)
-                  .update({'confbranch': instituteData[z].branches[x].bID});
-              await studentRef
-                  .doc(students[i].uid)
-                  .update({'confinstitute': instituteData[z].uid});
+                      if (instituteData[z].branches[x].filledSeats <
+                          instituteData[z].branches[x].totalSeats) {
+                        // Update the favorite institute branch of the student
+                        // String favInstitute =
+                        //     currentFav == instituteData[z].branches[x].bID
+                        //         ? currentFav
+                        //         : "";
+                        studentRef.doc(students[i].uid).update(
+                            {'confbranch': instituteData[z].branches[x].bID});
+                        studentRef
+                            .doc(students[i].uid)
+                            .update({'confinstitute': instituteData[z].uid});
 
-              print('You have successfully confirmed your institute branch.');
-              confirmed = true;
-              break;
-            }
-            //  else {
-            //   print(
-            //       'Your merit number is not within the available seats for this institute branch.');
-            //   confirmed = false;
-            // }
+                        print(
+                            'You have successfully confirmed your institute branch.');
+                        confirmed = true;
 
-            if (instituteData[z].branches[x].filledSeats <
-                instituteData[z].branches[x].totalSeats) {
-              // Update the favorite institute branch of the student
+                        instituteData[z].branches[x].filledSeats++;
 
-              instituteData[z].branches[x].filledSeats++;
+                        // Increment the seats in the branch document within the institute collection
+                        if (instituteData[z].branches[x].minMarks <
+                            students[i].meritNo) {
+                          instituteData[z].branches[x].minMarks =
+                              students[i].meritNo;
+                          print("$stuname get this $instiname in $branchname");
 
-              // Increment the seats in the branch document within the institute collection
-              if (instituteData[z].branches[x].minMarks == 0 ||
-                  instituteData[z].branches[x].minMarks < students[i].meritNo) {
-                instituteData[z].branches[x].minMarks = students[i].meritNo;
-                print("$stuname get this $instiname in $branchname");
+                          db
+                              .collection("institutes")
+                              .doc(instituteData[z].uid)
+                              .collection("branch")
+                              .doc(instituteData[z].branches[x].bID)
+                              .update({
+                            'minMarks': instituteData[z].branches[x].minMarks
+                          });
+                        }
 
-                await db
-                    .collection("institutes")
-                    .doc(instituteData[z].uid)
-                    .collection("branch")
-                    .doc(instituteData[z].branches[x].bID)
-                    .update(
-                        {'minMarks': instituteData[z].branches[x].minMarks});
+                        print(
+                            'You have successfully confirmed your institute branch.');
+                        confirmed = true;
+                        // break;
+                      } else {
+                        print(
+                            'Your merit number is not within the available seats for this institute branch. Please wait for next round.');
+                        confirmed = false;
+                      }
+                    }
+                    // if (instituteData[z].branches[x].minMarks == 0) {
+                    //   instituteData[z].branches[x].minMarks = students.length;
+                    //   db
+                    //       .collection("institutes")
+                    //       .doc(instituteData[z].uid)
+                    //       .collection("branch")
+                    //       .doc(instituteData[z].branches[x].bID)
+                    //       .update({'minMarks': students.length});
+                    // }
+                    if (confirmed) {
+                      break;
+                    }
+                  }
+                  if (confirmed) {
+                    break;
+                  }
+                }
               }
-
-              print('You have successfully confirmed your institute branch.');
-              confirmed = true;
-              break;
-            } else {
-              print(
-                  'Your merit number is not within the available seats for this institute branch. Please wait for next round.');
-              confirmed = false;
+              if (confirmed) {
+                break;
+              }
             }
+            //   if (confirmed) {
+            //     break;
+            //  }
           }
-          if (instituteData[z].branches[x].minMarks == 0) {
-            instituteData[z].branches[x].minMarks = students.length;
-            await db
-                .collection("institutes")
-                .doc(instituteData[z].uid)
-                .collection("branch")
-                .doc(instituteData[z].branches[x].bID)
-                .update({'minMarks': students.length});
-          }
-          if (confirmed) {
-            break;
-          }
-        }
-        // if (confirmed) {
-        //   break;
-        // }
-      }
-      if (confirmed) {
-        break;
-      }
-    }
-    //   if (confirmed) {
-    //     break;
-    //  }
-  }
+        },
+      );
+    },
+  );
 
-  return instiname + branchname;
+  // return instiname + branchname;
 }

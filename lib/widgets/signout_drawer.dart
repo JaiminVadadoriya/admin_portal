@@ -47,10 +47,11 @@ class SignoutDrawer extends StatelessWidget {
                       onTap: () => calculateMeritList(),
                     ),
                   )
-                : Card(
-                    child: ListTile(
-                    title: Text("Registration is running."),
-                  )),
+                : Container(),
+            // Card(
+            //     child: ListTile(
+            //     title: Text("Registration is running."),
+            //   )),
 
             rounds.mockroundEnds(Timestamp.now())
                 ? Card(
