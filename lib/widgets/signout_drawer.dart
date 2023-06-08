@@ -10,6 +10,8 @@ import '../pages/login_page.dart';
 import '../process/meritpdf.dart';
 import '../models/student.dart';
 import '../utils/conform_institute.dart';
+import '../utils/pdf_api.dart';
+import '../utils/pdf_invoice_api.dart';
 import 'merit.dart';
 
 class SignoutDrawer extends StatelessWidget {
@@ -53,18 +55,38 @@ class SignoutDrawer extends StatelessWidget {
             //     title: Text("Registration is running."),
             //   )),
 
-            rounds.mockroundEnds(Timestamp.now())
+            rounds.mockRoundEnds(Timestamp.now())
                 ? Card(
                     child: ListTile(
                       title: Text("Mock round"),
                       onTap: () => conformInstitute(),
                     ),
                   )
-                : Card(
+                : Container(),
+            rounds.firstRoundEnds(Timestamp.now())
+                ? Card(
                     child: ListTile(
-                      title: Text("Mock round date hasn't come"),
+                      title: Text("First round"),
+                      onTap: () => conformInstitute(),
                     ),
-                  ),
+                  )
+                : Container(),
+            rounds.secondRoundEnds(Timestamp.now())
+                ? Card(
+                    child: ListTile(
+                      title: Text("Second round"),
+                      onTap: () => conformInstitute(),
+                    ),
+                  )
+                : Container(),
+
+            // ElevatedButton(
+            //   onPressed: () async {
+            //     // final pdfFile = await PdfInvoiceApi.generate();
+            //     // PdfApi.openFile(pdfFile);
+            //   },
+            //   child: Text("Pdf Maker"),
+            // ),
 
             Card(
               child: ListTile(

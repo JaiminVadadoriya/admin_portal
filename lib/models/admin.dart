@@ -2,18 +2,17 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 
 class Admin {
-    Timestamp firstRoundEnd;
-   Timestamp firstRoundStart;
+  Timestamp firstRoundEnd;
+  Timestamp firstRoundStart;
   Timestamp mockRoundEnd;
-   Timestamp mockRoundStart;
+  Timestamp mockRoundStart;
 
   Admin({
     required this.firstRoundEnd,
     required this.firstRoundStart,
-   required this.mockRoundEnd,
+    required this.mockRoundEnd,
     required this.mockRoundStart,
   });
 
@@ -22,14 +21,12 @@ class Admin {
     Timestamp? firstRoundStart,
     Timestamp? mockRoundEnd,
     Timestamp? mockRoundStart,
-
   }) {
     return Admin(
       firstRoundEnd: firstRoundEnd ?? this.firstRoundEnd,
       firstRoundStart: firstRoundStart ?? this.firstRoundStart,
       mockRoundEnd: mockRoundEnd ?? this.mockRoundEnd,
       mockRoundStart: mockRoundStart ?? this.mockRoundStart,
-      
     );
   }
 
@@ -61,7 +58,6 @@ class Admin {
       firstRoundStart: data?['firstRoundStart'] as Timestamp,
       mockRoundStart: data?['mockRoundStart'] as Timestamp,
       mockRoundEnd: data?['mockRoundEnd'] as Timestamp,
-      
     );
   }
 
@@ -71,7 +67,6 @@ class Admin {
       firstRoundStart: map['firstRoundStart'] as Timestamp,
       mockRoundEnd: map['mockRoundEnd'] as Timestamp,
       mockRoundStart: map['mockRoundStart'] as Timestamp,
-
     );
   }
 
@@ -97,6 +92,6 @@ class Admin {
     return firstRoundEnd.hashCode ^
         firstRoundStart.hashCode ^
         mockRoundEnd.hashCode ^
-        mockRoundStart.hashCode ;
+        mockRoundStart.hashCode;
   }
 }

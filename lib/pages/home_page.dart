@@ -27,7 +27,7 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     List<Widget> widgetOptions = <Widget>[
       timeSet_Page(),
-      broadcast(),
+      Broadcast(),
       //profile(),
     ];
 

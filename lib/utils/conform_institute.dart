@@ -36,7 +36,11 @@ Future conformInstitute() async {
 
       // Fetch all the students from Firestore
       final studentRef = db.collection("students");
-      studentRef.orderBy("meritNo").get().then(
+      studentRef
+          .where("isSeatConf", isNotEqualTo: true)
+          .orderBy("meritNo")
+          .get()
+          .then(
         (stuValue) {
           final students = //Student.fromMap(userData);
               stuValue.docs.map((doc) => Student.fromMap(doc.data())).toList();

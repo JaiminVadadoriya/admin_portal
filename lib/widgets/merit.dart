@@ -187,8 +187,10 @@ Future<void> calculateMeritList() async {
     if (aMeritNumber != bMeritNumber) {
       print("threee");
       return bMeritNumber.compareTo(aMeritNumber);
-    } else {
+    } else if (aExtraSubject != bExtraSubject) {
       return bExtraSubject.compareTo(aExtraSubject);
+    } else {
+      return bseat.compareTo(aseat);
     }
   });
 

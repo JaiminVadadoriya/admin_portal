@@ -1,14 +1,16 @@
+import 'package:admin_portal/pages/front_page.dart';
 import 'package:admin_portal/pages/home_page.dart';
+import 'package:admin_portal/utils/routes.dart';
 import 'package:admin_portal/utils/themes.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:admin_portal/pages/login_page.dart';
 
 import 'models/rounds.dart';
 
-late Rounds rounds = Rounds(
+Rounds rounds = Rounds(
   firstRoundStart: Timestamp.now(),
   firstRoundEnd: Timestamp.now(),
   secondRoundStart: Timestamp.now(),
@@ -30,7 +32,11 @@ Future<void> _initRounds() async {
     mockRoundStart: Timestamp.now(),
     mockRoundEnd: Timestamp.now(),
   );
-  print("phele - ${returnValue}");
+  if (kDebugMode) {
+    if (kDebugMode) {
+      print("phele - $returnValue");
+    }
+  }
   await FirebaseFirestore.instance.collection('Admin').get().then(
     (snapshot) {
       for (var document in snapshot.docs) {
@@ -43,11 +49,15 @@ Future<void> _initRounds() async {
     //   },
     ,
     onError: (e) {
-      print(e);
+      if (kDebugMode) {
+        print(e);
+      }
     },
   );
 
-  print("badme - ${returnValue}");
+  if (kDebugMode) {
+    print("badme - $returnValue");
+  }
   // return returnValue;
 }
 
@@ -83,6 +93,10 @@ class MyApp extends StatelessWidget {
         darkTheme: ThemeData(useMaterial3: true, colorScheme: darkColorScheme),
         debugShowCheckedModeBanner: false,
         // home: const login_page(),
-        routes: {"/": (context) => const Login()});
+        routes: {
+          "/": (context) => const FrontPage(),
+          MyRoutes.homeRoute: (context) => Home(),
+          MyRoutes.loginRoute: (context) => Login(),
+        });
   }
 }

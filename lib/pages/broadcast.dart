@@ -5,15 +5,15 @@ import 'package:flutter/src/widgets/placeholder.dart';
 
 import '../models/message.dart';
 
-class broadcast extends StatefulWidget {
-  const broadcast({super.key});
+class Broadcast extends StatefulWidget {
+  const Broadcast({super.key});
 
   @override
-  State<broadcast> createState() => _broadcastState();
+  State<Broadcast> createState() => _BroadcastState();
 }
 
-class _broadcastState extends State<broadcast> {
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+class _BroadcastState extends State<Broadcast> {
+  final FirebaseFirestore db = FirebaseFirestore.instance;
   final TextEditingController _messageController = TextEditingController();
 
   void sendMessage() async {
@@ -23,13 +23,15 @@ class _broadcastState extends State<broadcast> {
 
     if (text.isNotEmpty) {
       try {
-        await firestore.collection('messages').add({
+        await db.collection('messages').add({
           'msgInfo': text,
           'sender': sender,
           'timestamp': FieldValue.serverTimestamp(),
+        }).then((value) {
+          db.collection('messages').doc(value.id).update({"mID": value.id});
+          _messageController.clear();
         });
-        print('Message sent and stored successfully.');
-        _messageController.clear();
+        // print('Message sent and stored successfully.');
       } catch (e) {
         print('Error sending message: $e');
       }
@@ -52,30 +54,26 @@ class _broadcastState extends State<broadcast> {
         children: [
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream: firestore
+              stream: db
                   .collection('messages')
                   .orderBy('timestamp', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return Center(
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
                     child: CircularProgressIndicator(),
                   );
                 }
-                if (!snapshot.hasData) {
-                  return Center(
+                if (snapshot.connectionState == ConnectionState.none) {
+                  return const Center(
                     child: Text('No messages available'),
                   );
                 }
 
                 final messages = snapshot.data!.docs.map((doc) {
                   final data = doc.data() as Map<String, dynamic>;
-                  final msgInfo = data['msgInfo'];
-                  final sender = data['sender'];
-                  final time = data['timestamp'];
 
-                  return Message(
-                      msgInfo: msgInfo, sender: sender, timestamp: time);
+                  return Message.fromMap(data);
                 }).toList();
 
                 return ListView.builder(
@@ -90,43 +88,57 @@ class _broadcastState extends State<broadcast> {
                       alignment: //isSender
                           Alignment.centerRight,
                       //: Alignment.centerLeft,
-                      child: Container(
-                        margin: EdgeInsets.symmetric(
-                            vertical: 8.0, horizontal: 16.0),
-                        padding: EdgeInsets.all(12.0),
-                        decoration: BoxDecoration(
-                          color: isSender
-                              ? Theme.of(context).focusColor
-                              : Theme.of(context).indicatorColor,
-                          borderRadius: BorderRadius.circular(16.0),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              message.sender,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.symmetric(
+                                vertical: 8.0, horizontal: 16.0),
+                            padding: const EdgeInsets.all(12.0),
+                            decoration: BoxDecoration(
+                              color: isSender
+                                  ? Theme.of(context).focusColor
+                                  : Theme.of(context).indicatorColor,
+                              borderRadius: BorderRadius.circular(16.0),
                             ),
-                            SizedBox(height: 4.0),
-                            Text(
-                              message.msgInfo,
-                              style: TextStyle(
-                                  // color: isSender ? Colors.white : Colors.black,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  message.sender,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
                                   ),
+                                ),
+                                const SizedBox(height: 4.0),
+                                Text(
+                                  message.msgInfo,
+                                  style: const TextStyle(
+                                      // color: isSender ? Colors.white : Colors.black,
+                                      ),
+                                ),
+                                const SizedBox(height: 4.0),
+                                Text(
+                                  messageTime(
+                                      message.timestamp ?? Timestamp.now()),
+                                  style: const TextStyle(
+                                    // color: isSender ? Colors.white70 : Colors.grey,
+                                    fontSize: 12.0,
+                                  ),
+                                ),
+                              ],
                             ),
-                            SizedBox(height: 4.0),
-                            Text(
-                              messageTime(message.timestamp),
-                              style: TextStyle(
-                                // color: isSender ? Colors.white70 : Colors.grey,
-                                fontSize: 12.0,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                          IconButton(
+                              onPressed: () {
+                                db
+                                    .collection('messages')
+                                    .doc(message.mID)
+                                    .delete();
+                              },
+                              icon: Icon(Icons.delete))
+                        ],
                       ),
                     );
                   },
@@ -135,19 +147,20 @@ class _broadcastState extends State<broadcast> {
             ),
           ),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _messageController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: 'Enter your message',
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.send),
+                  icon: const Icon(Icons.send),
                   onPressed: sendMessage,
                 ),
               ],

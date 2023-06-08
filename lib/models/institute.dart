@@ -142,7 +142,9 @@ class Institute {
         (map['branches'] as List).map<Branch>(
           (x) {
             Branch tempBranch = Branch.fromMap(x as Map<String, dynamic>);
-            print("branch - ${tempBranch}");
+            if (kDebugMode) {
+              print("branch - $tempBranch");
+            }
             return tempBranch;
           },
         ),
@@ -196,7 +198,7 @@ class Institute {
 class Branch {
   int minMarks; //
   final int totalSeats; //
-   int filledSeats; //
+  int filledSeats; //
   bool isFav = false; //
   final String branchName;
   final String bID;

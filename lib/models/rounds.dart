@@ -85,9 +85,26 @@ class Rounds {
     return false;
   }
 
-  bool mockroundEnds(Timestamp cureentTime) {
+  bool mockRoundEnds(Timestamp cureentTime) {
     if (mockRoundEnd.compareTo(cureentTime) < 0 &&
         firstRoundStart.compareTo(cureentTime) > 0) {
+      return true;
+    }
+
+    return false;
+  }
+
+  bool firstRoundEnds(Timestamp cureentTime) {
+    if (firstRoundEnd.compareTo(cureentTime) < 0 &&
+        secondRoundStart.compareTo(cureentTime) > 0) {
+      return true;
+    }
+
+    return false;
+  }
+
+  bool secondRoundEnds(Timestamp cureentTime) {
+    if (secondRoundEnd.compareTo(cureentTime) < 0) {
       return true;
     }
 

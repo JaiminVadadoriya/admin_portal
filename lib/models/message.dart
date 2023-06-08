@@ -2,34 +2,37 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 
 class Message {
-   String msgInfo;
-   String sender;
-  Timestamp timestamp;
+  String msgInfo;
+  String sender;
+  String? mID;
+  Timestamp? timestamp;
 
   Message({
     required this.msgInfo,
     required this.sender,
+    required this.mID,
     required this.timestamp,
-   
   });
 
   Message copyWith({
     String? msgInfo,
     String? sender,
+    String? mID,
+    Timestamp? timestamp,
   }) {
     return Message(
+      mID: mID ?? this.mID,
       msgInfo: msgInfo ?? this.msgInfo,
       sender: sender ?? this.sender,
-      timestamp: timestamp,
-      
+      timestamp: timestamp ?? this.timestamp,
     );
   }
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
+      'mID': mID,
       'msgInfo': msgInfo,
       'sender': sender,
       'timestamp': timestamp,
@@ -38,6 +41,7 @@ class Message {
 
   Map<String, dynamic> toFirestore() {
     return {
+      if (mID != null) 'mID': mID,
       if (msgInfo != null) 'msgInfo': msgInfo,
       if (sender != null) 'sender': sender,
       if (timestamp != null) 'timestamp': timestamp,
@@ -50,6 +54,7 @@ class Message {
   ) {
     final data = snapshot.data();
     return Message(
+      mID: data?['mID'] as String,
       msgInfo: data?['msgInfo'] as String,
       sender: data?['sender'] as String,
       timestamp: data?['timestamp'] as Timestamp,
@@ -58,10 +63,10 @@ class Message {
 
   factory Message.fromMap(Map<String, dynamic> map) {
     return Message(
+      mID: map['mID'] as String?,
       msgInfo: map['msgInfo'] as String,
       sender: map['sender'] as String,
-      timestamp: map['timestamp'] as Timestamp,
-
+      timestamp: map['timestamp'] as Timestamp?,
     );
   }
 
@@ -72,7 +77,7 @@ class Message {
 
   @override
   String toString() {
-    return 'Message(msgInfo: $msgInfo, sender: $sender, timestamp: $timestamp )';
+    return 'Message(mID: $mID, msgInfo: $msgInfo, sender: $sender, timestamp: $timestamp )';
   }
 
   // @override
@@ -84,7 +89,8 @@ class Message {
 
   @override
   int get hashCode {
-    return msgInfo.hashCode ^
+    return mID.hashCode ^
+        msgInfo.hashCode ^
         sender.hashCode ^
         timestamp.hashCode;
   }
